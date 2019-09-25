@@ -57,4 +57,3 @@ class User:
 
 if __name__ == "__main__":
     name = input("Print your name: ")
-    current_user = user(name)
