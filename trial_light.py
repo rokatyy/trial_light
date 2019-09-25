@@ -1,4 +1,7 @@
+#!/usr/bin/env python3
 import psycopg2
+import os,sys
+import argparse
 
 from Launch_parameters import parameters
 
@@ -25,9 +28,19 @@ class Database:
                                                database=self.db)
             self.cursor = self.connection.cursor()
         except Exception as e:
-            assert AssertionError('Can\'t connect to database. Error'.format(e))
+            print('Database haven\'t been found')
+            self.__create_new_base()
+            #assert AssertionError('Can\'t connect to database. Error'.format(e))
 
-    def
+    def create_new_base(self):
+        print('Database creation')
+        con = psycopg2.connect(dbname='postgres',
+              user=self.db_user, host=self.host,
+              password=self.password)
+        
+        con.autocommit = True
+        cur = con.cursor()
+        cur.execute('CREATE DATABASE {};'.format(self.db_name))
 
 class User:
     def __init__(self, name):
@@ -53,7 +66,24 @@ class User:
     def authorization(): 
         pass
 
+class Manager:
+    def __init__(self, action, secret_flag = None)
+        self.flag = secret_flag
+        if action == 'unistall': self.unistall()
+        elif action == 'install': self.install()
+
+    def __install():
+        pass
+
+    def __unistall():
+        if self.flag is not None:
+            self.__full_uninstall()
+
+    def __full_uninstall():
+        pass
 
 
 if __name__ == "__main__":
     name = input("Print your name: ")
+    database = Database()
+    database.create_new_base()
