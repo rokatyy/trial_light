@@ -1,18 +1,35 @@
-import sqlite3
-conn = sqlite3.connect('userdb')
-cursor = conn.cursor()
+import psycopg2
 
-DATABASE_PATH = "/home/rokatyy/labs/lab4/userdb"
+from Launch_parameters import parameters
+
 TABLE_NAME = "user_control"
 ACCESS_TIME = 300
 ACCESS_COUNT_LIMIT = 5
 
 
-
-class database:
+class Database:
     def __init__(self):
-        pass	
-class user:
+        self.db = parameters.DATABASE_INFO["db_name"]
+        self.db_user = parameters.DATABASE_INFO["user"]
+        self.password = parameters.DATABASE_INFO["password"]
+        self.host = parameters.DATABASE_INFO["host"]
+        self.port = parameters.DATABASE_INFO["port"]
+        self.connection = None
+        self.cursor = None
+
+
+    def connect(self):
+        try:
+            self.connection = psycopg2.connect(user=self.db_user, password=self.password, host=self.host,
+                                               port=self.port,
+                                               database=self.db)
+            self.cursor = self.connection.cursor()
+        except Exception as e:
+            assert AssertionError('Can\'t connect to database. Error'.format(e))
+
+    def
+
+class User:
     def __init__(self, name):
         self.conn = sqlite3.connect(DATABASE_PATH)
         self.cursor = conn.cursor()
