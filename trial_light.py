@@ -1,52 +1,66 @@
 #!/usr/bin/env python3
-import psycopg2
-import os,sys
+
+import os, sys
 import argparse
-
-from Launch_parameters import parameters
-
-TABLE_NAME = "user_control"
-ACCESS_TIME = 300
-ACCESS_COUNT_LIMIT = 5
+import pandas as pd
+from base64 import b64encode, b64decode
+from io import StringIO
 
 
-class Database:
-    def __init__(self):
-        self.db = parameters.DATABASE_INFO["db_name"]
-        self.db_user = parameters.DATABASE_INFO["user"]
-        self.password = parameters.DATABASE_INFO["password"]
-        self.host = parameters.DATABASE_INFO["host"]
-        self.port = parameters.DATABASE_INFO["port"]
-        self.connection = None
-        self.cursor = None
+class TrialManager:
+    def __init__(self, username):
+        self.file = '/tmp/trial_light/info.csv'
+        self.header = "username,access_count\n"
+        self.current_data = None
+        self.user = username
+        self.ACCESS_COUNT_LIMIT = 5
+        self.ACCESS_TIME = 300
 
+    def update_data_at_trial_file(self):
+        self.read_trial_data()
+        if self.user not in self.current_data:
+            self.__add_data_to_trial_file()
+        else:
+            self.current_data[self.user] -= 1
+        self.write_trial_data()
 
-    def connect(self):
+    def read_trial_data(self):
+        data = ''.join(open(self.file, 'r').read().splitlines())
+        decoded_data = b64decode(data)
+        self.current_data = self.__parse(str(decoded_data))
+
+    def write_trial_data(self):
+        self.__make_ready_for_write()
+        file = open(self.file, 'wb')
+        decoded_data = b64encode(self.current_data.encode('utf-8'))
+        file.write(decoded_data)
+
+    def __add_data_to_trial_file(self):
+        self.current_data[self.user] = self.ACCESS_COUNT_LIMIT
+
+    def __parse(self, data):
+        parse_file = StringIO(data)
+        csv_file = pd.read_csv(parse_file)
+        data_dict = {}
         try:
-            self.connection = psycopg2.connect(user=self.db_user, password=self.password, host=self.host,
-                                               port=self.port,
-                                               database=self.db)
-            self.cursor = self.connection.cursor()
-        except Exception as e:
-            print('Database haven\'t been found')
-            self.__create_new_base()
-            #assert AssertionError('Can\'t connect to database. Error'.format(e))
+            for username in csv_file["username"]:
+                for access_count in csv_file["access_count"]:
+                    data_dict[username] = int(access_count)
+        except:
+            pass
+        return data_dict
 
-    def create_new_base(self):
-        print('Database creation')
-        con = psycopg2.connect(dbname='postgres',
-              user=self.db_user, host=self.host,
-              password=self.password)
-        
-        con.autocommit = True
-        cur = con.cursor()
-        cur.execute('CREATE DATABASE {};'.format(self.db_name))
+    def __make_ready_for_write(self):
+        string = self.header
+        for user in self.current_data:
+            string += '{username},{access_count}\n'.format(username=user, access_count=self.current_data[user])
+        self.current_data = string
+
 
 class User:
     def __init__(self, name):
         self.name = name
         self.clear_name()
-
 
     def clear_name(self):
         """
@@ -55,27 +69,29 @@ class User:
         self.name = ' '.join(name.split())
 
     def check_db(self):
-        sql_query = 'select * from {table} where name = {name}'.format(table = TABLE_NAME, name = self.name)
-
+        sql_query = 'select * from {table} where name = {name}'.format(table=TABLE_NAME, name=self.name)
 
     def create_new_user(self):
-        sql_query = 'insert into {table} values(\'name\', 5'.format(table = TABLE_NAME, name = self.name, access_count = ACCESS_COUNT_LIMIT)
+        sql_query = 'insert into {table} values(\'name\', 5'.format(table=TABLE_NAME, name=self.name,
+                                                                    access_count=ACCESS_COUNT_LIMIT)
 
-     
     @staticmethod
-    def authorization(): 
+    def authorization():
         pass
+
 
 class Manager:
-    def __init__(self, action, secret_flag = None)
+    def __init__(self, action, secret_flag=None):
         self.flag = secret_flag
-        if action == 'unistall': self.unistall()
-        elif action == 'install': self.install()
+        if action == 'unistall':
+            self.__unistall()
+        elif action == 'install':
+            self.__install()
 
-    def __install():
+    def __install(self):
         pass
 
-    def __unistall():
+    def __unistall(self):
         if self.flag is not None:
             self.__full_uninstall()
 
@@ -84,6 +100,8 @@ class Manager:
 
 
 if __name__ == "__main__":
-    name = input("Print your name: ")
-    database = Database()
-    database.create_new_base()
+    # name = input("Print your name: ")
+    name = 'Alex'
+
+    trial = TrialManager(name)
+    trial.update_data_at_trial_file()
