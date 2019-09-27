@@ -14,6 +14,7 @@ class TrialManager:
         self.user = username
         self.ACCESS_COUNT_LIMIT = 5
         self.ACCESS_TIME = 300
+        self.update_data_at_trial_file()
 
     def update_data_at_trial_file(self):
         self.read_trial_data()
@@ -63,50 +64,30 @@ class TrialManager:
             self.current_data[self.user] -= 1
 
 
-class User:
-    def __init__(self, name):
-        self.name = name
-        self.clear_name()
+class App:
+    def __init__(self):
+        print("Welcome to super secure calculator. Print your expression:")
+        while True:
+            self.__super_secure_function()
 
-    def clear_name(self):
+    def __super_secure_function(self):
         """
         Name change protection by spaces
         """
-        self.name = ' '.join(name.split())
+        expression = input()
+        if expression == 'exit':
+            print("Thanks for using our super secure calc :)")
+            exit(0)
+        try:
+            result = eval(expression)
+            print(result)
+        except:
+            print("Not valid expression. Please retry. For exit print 'exit'.")
 
-    def check_db(self):
-        sql_query = 'select * from {table} where name = {name}'.format(table=TABLE_NAME, name=self.name)
-
-    def create_new_user(self):
-        sql_query = 'insert into {table} values(\'name\', 5'.format(table=TABLE_NAME, name=self.name,
-                                                                    access_count=ACCESS_COUNT_LIMIT)
-
-    @staticmethod
-    def authorization():
-        pass
-
-
-class Manager:
-    def __init__(self, action, secret_flag=None):
-        self.flag = secret_flag
-        if action == 'unistall':
-            self.__unistall()
-        elif action == 'install':
-            self.__install()
-
-    def __install(self):
-        pass
-
-    def __unistall(self):
-        if self.flag is not None:
-            self.__full_uninstall()
-
-    def __full_uninstall():
-        pass
 
 
 if __name__ == "__main__":
-    # name = input("Print your name: ")
-    name = 'Anna'
+    name = input("Print your name: ")
+    name = 'Katya'
     trial = TrialManager(name)
-    trial.update_data_at_trial_file()
+    App()
