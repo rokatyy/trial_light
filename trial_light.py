@@ -10,7 +10,6 @@ from io import StringIO
 class TrialManager:
     def __init__(self, username):
         self.file = '/tmp/trial_light/info.csv'
-        self.header = "username,access_count\n"
         self.current_data = None
         self.user = username
         self.ACCESS_COUNT_LIMIT = 5
@@ -21,12 +20,12 @@ class TrialManager:
         if self.user not in self.current_data:
             self.__add_data_to_trial_file()
         else:
-            self.current_data[self.user] -= 1
+            self.__check_user_accessibility()
         self.write_trial_data()
 
     def read_trial_data(self):
         data = ''.join(open(self.file, 'r').read().splitlines())
-        decoded_data = b64decode(data)
+        decoded_data = (b64decode(data)).decode('utf-8')
         self.current_data = self.__parse(str(decoded_data))
 
     def write_trial_data(self):
@@ -40,21 +39,28 @@ class TrialManager:
 
     def __parse(self, data):
         parse_file = StringIO(data)
-        csv_file = pd.read_csv(parse_file)
+        csv_file = pd.read_csv(parse_file, header=None, names=['username', 'access_count'], )
         data_dict = {}
         try:
-            for username in csv_file["username"]:
-                for access_count in csv_file["access_count"]:
+            for username in csv_file['username']:
+                for access_count in csv_file['access_count']:
                     data_dict[username] = int(access_count)
         except:
             pass
         return data_dict
 
     def __make_ready_for_write(self):
-        string = self.header
+        string = ''
         for user in self.current_data:
             string += '{username},{access_count}\n'.format(username=user, access_count=self.current_data[user])
         self.current_data = string
+
+    def __check_user_accessibility(self):
+        if self.current_data[self.user] < 1:
+            print("Intruder!!!")
+            exit(0)
+        else:
+            self.current_data[self.user] -= 1
 
 
 class User:
@@ -101,7 +107,6 @@ class Manager:
 
 if __name__ == "__main__":
     # name = input("Print your name: ")
-    name = 'Alex'
-
+    name = 'Anna'
     trial = TrialManager(name)
     trial.update_data_at_trial_file()
