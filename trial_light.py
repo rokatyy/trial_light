@@ -17,6 +17,9 @@ class TrialManager:
         self.update_data_at_trial_file()
 
     def update_data_at_trial_file(self):
+        """
+        Updates specific user information at trial_file.
+        """
         self.read_trial_data()
         if self.user not in self.current_data:
             self.__add_data_to_trial_file()
@@ -25,20 +28,37 @@ class TrialManager:
         self.write_trial_data()
 
     def read_trial_data(self):
+        """
+        Reads trial data file and decodes it from base64 into string.
+        """
         data = ''.join(open(self.file, 'r').read().splitlines())
         decoded_data = (b64decode(data)).decode('utf-8')
         self.current_data = self.__parse(str(decoded_data))
 
     def write_trial_data(self):
+        """
+        Writes updated data at file.
+        """
         self.__make_ready_for_write()
         file = open(self.file, 'wb')
         decoded_data = b64encode(self.current_data.encode('utf-8'))
         file.write(decoded_data)
 
     def __add_data_to_trial_file(self):
-        self.current_data[self.user] = self.ACCESS_COUNT_LIMIT
+        """
+        Call if user doesn't exists.
+        Added user info into dictionary.
+        """
+        limit = self.ACCESS_COUNT_LIMIT
+        self.current_data[self.user] = limit
 
     def __parse(self, data):
+        """
+        Parses current trial file.
+        Parses string as csv file format and then put it into dictionary.
+        Returns:
+            data_dict (dict)
+        """
         parse_file = StringIO(data)
         csv_file = pd.read_csv(parse_file, header=None, names=['username', 'access_count'], )
         data_dict = {}
@@ -51,12 +71,19 @@ class TrialManager:
         return data_dict
 
     def __make_ready_for_write(self):
+        """
+        Converts dictionary into string format
+        """
         string = ''
         for user in self.current_data:
             string += '{username},{access_count}\n'.format(username=user, access_count=self.current_data[user])
         self.current_data = string
 
     def __check_user_accessibility(self):
+        """
+        Checks if user can use app. If the user used the application the number of times equal to the limit,
+        he will not able to use it anymore.
+        """
         if self.current_data[self.user] < 1:
             print("Intruder!!!")
             exit(0)
@@ -85,9 +112,7 @@ class App:
             print("Not valid expression. Please retry. For exit print 'exit'.")
 
 
-
 if __name__ == "__main__":
     name = input("Print your name: ")
-    name = 'Katya'
     trial = TrialManager(name)
     App()
