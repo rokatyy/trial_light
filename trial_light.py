@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
-import os, sys
-import argparse
+
 import pandas as pd
 from base64 import b64encode, b64decode
 from io import StringIO
+import signal
+
+ACCESS_TIME = 300
 
 
 class TrialManager:
@@ -13,7 +15,6 @@ class TrialManager:
         self.current_data = None
         self.user = username
         self.ACCESS_COUNT_LIMIT = 5
-        self.ACCESS_TIME = 300
         self.update_data_at_trial_file()
 
     def update_data_at_trial_file(self):
@@ -91,11 +92,20 @@ class TrialManager:
             self.current_data[self.user] -= 1
 
 
+def handler(signum, frame):
+    raise Exception("Your time is over.")
+
+
 class App:
     def __init__(self):
-        print("Welcome to super secure calculator. Print your expression:")
-        while True:
-            self.__super_secure_function()
+        try:
+            print("Welcome to super secure calculator. Print your expression:")
+            signal.signal(signal.SIGALRM, handler)
+            signal.alarm(ACCESS_TIME)
+            while True:
+                self.__super_secure_function()
+        except Exception as e:
+            print(e)
 
     def __super_secure_function(self):
         """
@@ -103,6 +113,7 @@ class App:
         """
         expression = input()
         if expression == 'exit':
+            signal.alarm(0)
             print("Thanks for using our super secure calc :)")
             exit(0)
         try:
